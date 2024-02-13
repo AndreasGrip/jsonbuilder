@@ -17,6 +17,9 @@
         min-width: 90%;
         min-height: 100px;
       }
+      .jsonEditorError {
+        background-color: red;
+      }
       .jsonModel {
         background-color: rgb(149, 174, 219);
         padding: 4px;
@@ -71,10 +74,16 @@
         obj.classList.add(...classList);
         return obj;
       }
-
+      
       function jsonEditor2jsonObject() {
+        // Fetch the contents of the element containing the JSON text.
         let jsonCode = document.getElementById('jsonEditor').innerText;
-        if (json2object(jsonCode)) console.log('stored');
+
+        if (!(json2object(jsonCode) instanceof Error)) {
+          document.getElementById('jsonEditor').classList.remove('jsonEditorError');
+        } else {
+          document.getElementById('jsonEditor').classList.add('jsonEditorError');
+        }
       }
 
       function json2object(json) {
@@ -104,6 +113,7 @@
           return returnObj;
         }
         if (typeof object === 'number') {
+          //TODO add function to remove any non-numeric values, and replace comma with dot.
           let returnObj = oneLineTag('div', { contentEditable: 'true', innerText: object}, ['inputdiv', 'typeNumber']);
           return returnObj;
         }
@@ -190,7 +200,7 @@
       document.addEventListener('DOMContentLoaded', (event) => {
         const jsonEditor = document.getElementById('jsonEditor');
         const jsonModel = document.getElementById('jsonModel');
-
+/*
         Object.keys(window).forEach((key) => {
           if (/./.test(key)) {
             window.addEventListener(key.slice(2), (event) => {
@@ -214,7 +224,7 @@
             });
           }
         });
-
+*/
         jsonEditor.addEventListener('keyup', (event) => {
           jsonEditor2jsonObject();
           jsonObject2model();
