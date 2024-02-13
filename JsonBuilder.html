@@ -1,0 +1,247 @@
+<html>
+  <head>
+    <style>
+      .button {
+        background-color: rgb(192, 188, 188);
+        color: black;
+        font-weight: bold;
+        padding: 6px;
+        width: fit-content;
+        border: 3px solid black;
+      }
+      .jsonEditor {
+        background-color: aqua;
+        padding: 4px;
+        border: 3px solid black;
+        font-family: monospace;
+        min-width: 90%;
+        min-height: 100px;
+      }
+      .jsonModel {
+        background-color: rgb(149, 174, 219);
+        padding: 4px;
+        border: 3px solid black;
+        min-width: 90%;
+        min-height: 100px;
+      }
+      .inputdiv {
+        background-color: blanchedalmond;
+        padding: 2px;
+        border: 2px solid black;
+        min-height: 18px;
+      }
+      .checkboxdiv {
+        /* background-color: blanchedalmond;*/
+        padding: 2px;
+        border: 2px solid black;
+      }
+      .checkboxdivtrue {
+        background-color: green;
+      }
+      .checkboxdivfalse {
+        background-color: red;
+      }
+      .objectscontainer {
+        border: 2px solid black;
+        padding: 4px;
+        margin: 5px;
+      }
+      .objectcontainer {
+        background-color: blueviolet;
+        border: 2px solid black;
+        padding: 4px;
+        margin: 5px;
+      }
+      .objectcontainer.arraycontainer {
+        background-color: aquamarine;
+      }
+    </style>
+    <script>
+      // https://stackoverflow.com/questions/39251318/javascript-function-document-createelementtagname-options-doesnt-work-as-i
+      /**
+       * Create a html element, like div, span etc.
+       * @param {string} tag - Tag, for instance div, span, a etc.
+       * @param {object} options - Optional options like id, href, etc.
+       * @param {object} classList - Optional classes to add to the object.
+       * @return {htmlElement} - html element like div, span etc.
+       */
+      function oneLineTag(tag, options = {}, classList = []) {
+        if (!Array.isArray(classList)) classList = [classList];
+        const obj = Object.assign(document.createElement(tag), options);
+        obj.classList.add(...classList);
+        return obj;
+      }
+
+      function jsonEditor2jsonObject() {
+        let jsonCode = document.getElementById('jsonEditor').innerText;
+        if (json2object(jsonCode)) console.log('stored');
+      }
+
+      function json2object(json) {
+        try {
+          document.jsonObject = JSON.parse(json);
+          return document.jsonObject;
+        } catch (error) {
+          return new Error('Invalid JSON code ' + error);
+        }
+      }
+
+      function checkboxToggler(node) {
+        node.classList.remove('checkboxdiv' + node.innerText);
+        const value = (node.innerText = node.innerText == 'false' ? 'true' : 'false');
+        node.classList.add('checkboxdiv' + value);
+      }
+
+      function modelbuilder(object) {
+        // the following should not happen in object derived from json.
+        if (object === undefined) return;
+        if (object === 'bigint') return;
+        if (object === 'symbol') return;
+        if (object === 'function') return;
+
+        if (typeof object === 'string') {
+          let returnObj = oneLineTag('div', { contentEditable: 'true', innerText: object }, ['inputdiv', 'typeString']);
+          return returnObj;
+        }
+        if (typeof object === 'number') {
+          let returnObj = oneLineTag('div', { contentEditable: 'true', innerText: object}, ['inputdiv', 'typeNumber']);
+          return returnObj;
+        }
+        if (typeof object === 'boolean') {
+          let returnObj = oneLineTag('div', { innerText: object }, ['checkboxdiv', 'checkboxdiv' + object, 'typeBoolean']);
+          returnObj.onclick = function () {
+            checkboxToggler(this);
+          };
+          return returnObj;
+        }
+
+        if (Array.isArray(object)) {
+          let returnObj = oneLineTag('div', {}, ['arraycontainer', 'typeArray']);
+          object.forEach((o) => {
+            returnObj.appendChild(modelbuilder(o));
+          });
+          return returnObj;
+        }
+
+        if (typeof object === 'object') {
+          const returnObjects = oneLineTag('div', {}, ['objectscontainer', 'typeObject']);
+          for (const [key, value] of Object.entries(object)) {
+            const returnObj = oneLineTag('div', {}, 'objectcontainer');
+            const objname = oneLineTag('div', {}, 'objectname');
+            objname.textContent = key;
+            returnObj.appendChild(objname);
+            returnObj.appendChild(modelbuilder(value));
+            returnObjects.appendChild(returnObj);
+          }
+          return returnObjects;
+        }
+
+        // const destNode = oneLineTag('div',)
+      }
+
+      function jsonObject2model(object) {
+        //if (object === undefined) return new Error('jsonbject is undefined.');
+        document.getElementById('jsonModel').innerHTML = '';
+        const child = modelbuilder(document.jsonObject);
+        document.getElementById('jsonModel').appendChild(child);
+        //if(Array.isArray(object))
+      }
+
+      function objectBuilder(node) {
+        let json = '';
+        for (let i = 0; node.childNodes.length > i; i++) {
+          let n = node.childNodes[i];
+          let name;
+          if (n.classList.contains('objectname')) {
+            json += '"' + n.innerText + '": ';
+            i++;
+            n = node.childNodes[i];
+          }
+          if (n.classList.contains('typeString')) {
+            json += '"' + n.innerText + '",';
+          } else if (n.classList.contains('typeNumber')) {
+            json += n.innerText + ',';
+          } else if (n.classList.contains('typeBoolean')) {
+            json += n.innerText === 'true' ? 'true' : 'false';
+            json += ',';
+          } else if (n.classList.contains('typeObject')) {
+            json += '{';
+            json += objectBuilder(n);
+            json = json.slice(0, -1);
+            json += '},';
+          } else if (n.classList.contains('typeArray')) {
+            json += '[';
+            json += objectBuilder(n);
+            json = json.slice(0, -1);
+            json += '],';
+          } else if (n.classList.contains('objectcontainer')) {
+            json += objectBuilder(n);
+          }
+        }
+        return json;
+      }
+
+      function model2JSON() {
+        const model = document.getElementById('jsonModel');
+        const newJSON = objectBuilder(model);
+        console.log(newJSON.slice(0, -1));
+        document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON.slice(0, -1)), undefined, 4);
+      }
+      document.addEventListener('DOMContentLoaded', (event) => {
+        const jsonEditor = document.getElementById('jsonEditor');
+        const jsonModel = document.getElementById('jsonModel');
+
+        Object.keys(window).forEach((key) => {
+          if (/./.test(key)) {
+            window.addEventListener(key.slice(2), (event) => {
+              switch (key) {
+                case 'onpointerrawupdate':
+                case 'onmouseout':
+                case 'onpointermove':
+                case 'onmousemove':
+                case 'onmouserover':
+                case 'onpointerup':
+                case 'onmouseover':
+                case 'onpointerdown':
+                case 'onmouseup':
+                case 'onmousedown':
+                case 'onpointerout':
+                case 'onpointerover':
+                  break;
+                default:
+                  console.log(key, event);
+              }
+            });
+          }
+        });
+
+        jsonEditor.addEventListener('keyup', (event) => {
+          jsonEditor2jsonObject();
+          jsonObject2model();
+        });
+        jsonModel.addEventListener('keyup', (event) => {
+          model2JSON();
+        });
+        jsonModel.addEventListener('click', (event) => {
+          model2JSON();
+        });
+
+        jsonEditor2jsonObject();
+        jsonObject2model();
+        model2JSON();
+      });
+    </script>
+  </head>
+  <body>
+    <pre id="jsonEditor" class="jsonEditor" contenteditable="true">
+{
+    "settings": "snö",
+    "array": [1,2,3],
+    "more": {"first": 1, "second": 2},
+    "boolean": true
+}
+    </pre>
+
+    <div id="jsonModel" class="jsonModel"></div>
+  </body>
+</html>
