@@ -44,19 +44,13 @@
       .checkboxdivfalse {
         background-color: red;
       }
-      .objectscontainer {
-        border: 2px solid black;
-        padding: 4px;
-        margin: 5px;
-      }
-      .objectcontainer {
-        background-color: blueviolet;
-        border: 2px solid black;
-        padding: 4px;
-        margin: 5px;
-      }
-      .arraycontainer .inputdiv {
-        background-color: aquamarine;
+      legend.objectname {
+        font-weight: bolder;
+        font-size: small;
+        background-color: white;
+        border: 1px solid black;
+        border-radius: 4px;
+        padding: 0px 5px 0px 5px;
       }
     </style>
     <script>
@@ -136,8 +130,8 @@
         if (typeof object === 'object') {
           const returnObjects = oneLineTag('div', {}, ['objectscontainer', 'typeObject']);
           for (const [key, value] of Object.entries(object)) {
-            const returnObj = oneLineTag('div', {}, 'objectcontainer');
-            const objname = oneLineTag('div', {}, 'objectname');
+            const returnObj = oneLineTag('fieldset', {}, 'objectcontainer');
+            const objname = oneLineTag('legend', {}, 'objectname');
             objname.textContent = key;
             returnObj.appendChild(objname);
             returnObj.appendChild(modelbuilder(value));
