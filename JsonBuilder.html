@@ -111,10 +111,10 @@
 
       function modelbuilder(object) {
         // the following should not happen in object derived from json.
-        if (object === undefined) return;
-        if (object === 'bigint') return;
-        if (object === 'symbol') return;
-        if (object === 'function') return;
+        if (typeof object === undefined) return;
+        if (typeof object === 'bigint') return;
+        if (typeof object === 'symbol') return;
+        if (typeof object === 'function') return;
 
         if (typeof object === 'string') {
           let returnObj = oneLineTag('div', { contentEditable: 'true', innerText: object }, ['inputdiv', 'typeString']);
