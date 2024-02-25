@@ -1,0 +1,4 @@
+JSONBuilder
+
+The intention is to be able to take a JSON block with settings and convert it to something that (hopefully) your mother would be able to handle, and then to be able to convert it back to JSON.
+The top part that is JSON could (should?) be hidden if used that way.
