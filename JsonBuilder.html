@@ -1,14 +1,6 @@
 <html>
   <head>
     <style>
-      .button {
-        background-color: rgb(192, 188, 188);
-        color: black;
-        font-weight: bold;
-        padding: 6px;
-        width: fit-content;
-        border: 3px solid black;
-      }
       .jsonEditor {
         background-color: rgb(201, 228, 205);
         padding: 4px;
@@ -21,13 +13,13 @@
         background-color: rgb(248, 144, 144);
       }
       .jsonModel {
-        background-color: rgb(255, 255, 255);
+        background-color: white;
         padding: 4px;
         border: 3px solid black;
         min-width: 90%;
         min-height: 100px;
       }
-      .objectscontainer.typeObject {
+      .typeObject {
         border: 0px solid black;
         padding: 0px;
         margin: 0px;
@@ -38,17 +30,23 @@
         padding: 4px;
         margin: 5px;
       }
+      .typearray {
+        background-color: pink;
+      }
       .inputdiv {
-        background-color: rgb(243, 228, 206);
+        background-color: rgb(255, 255, 255);
         padding: 2px;
         border: 2px solid black;
         min-height: 18px;
       }
       .inputdiv.typenumber {
-        background-color: rgb(255, 153, 0);
+        background-color: black;
+        color: white;
+      }
+      .inputdiv.typestring {
+        background-color: white;
       }
       .checkboxdiv {
-        /* background-color: blanchedalmond;*/
         padding: 2px;
         border: 2px solid black;
       }
@@ -58,11 +56,15 @@
       .checkboxdivfalse {
         background-color: rgb(216, 97, 97);
       }
+      .arraycontainer {
+        background-color: rgb(1, 5, 241);
+      }
       legend.objectname {
         font-weight: bolder;
         font-size: small;
         background-color: white;
         border: 1px solid black;
+        color: black;
         border-radius: 4px;
         padding: 0px 5px 0px 5px;
       }
@@ -82,7 +84,7 @@
         obj.classList.add(...classList);
         return obj;
       }
-      
+
       function jsonEditor2jsonObject() {
         // Fetch the contents of the element containing the JSON text.
         let jsonCode = document.getElementById('jsonEditor').innerText;
@@ -103,56 +105,92 @@
         }
       }
 
+      // google a true/false
       function checkboxToggler(node) {
-        node.classList.remove('checkboxdiv' + node.innerText);
-        const value = (node.innerText = node.innerText == 'false' ? 'true' : 'false');
+        let textNode;
+        for (let i = 0; i < node.childNodes.length; i++) {
+          // nodeType 3 = textNode
+          if (node.childNodes[i].nodeType === 3) {
+            textNode = node.childNodes[i];
+            break;
+          }
+        }
+
+        node.classList.remove('checkboxdiv' + textNode.textContent);
+        const value = (textNode.textContent = textNode.textContent == 'false' ? 'true' : 'false');
         node.classList.add('checkboxdiv' + value);
       }
 
       function modelbuilder(object) {
+        let returnObj = oneLineTag('div');
         // the following should not happen in object derived from json.
         if (typeof object === undefined) return;
         if (typeof object === 'bigint') return;
         if (typeof object === 'symbol') return;
         if (typeof object === 'function') return;
 
-        if (typeof object === 'string') {
-          let returnObj = oneLineTag('div', { contentEditable: 'true', innerText: object }, ['inputdiv', 'typeString']);
-          return returnObj;
+        returnObj = oneLineTag('fieldset', {}, 'objectcontainer');
+        if (Array.isArray(object)) {
+          returnObj.classList.add('typearray');
+        } else {
+          returnObj.classList.add('type' + typeof object);
+        }
+        if (['string', 'number', 'boolean'].includes(typeof object)) {
+          returnObj.classList.add('inputdiv');
+          returnObj.innerText = object;
+          if (['string', 'number'].includes(typeof object)) {
+            returnObj.contentEditable = true;
+          }
         }
         if (typeof object === 'number') {
           //TODO add function to remove any non-numeric values, and replace comma with dot.
-          let returnObj = oneLineTag('div', { contentEditable: 'true', innerText: object}, ['inputdiv', 'typeNumber']);
-          return returnObj;
+          returnObj.addEventListener('keyup', (event) => {
+            event.preventDefault();
+            const childNodes = event.target.childNodes;
+            let textNode;
+            for (let i = 0; i < childNodes.length; i++) {
+              // nodeType 3 = textNode
+              if (childNodes[i].nodeType === 3) {
+                textNode = childNodes[i];
+                break;
+              }
+            }
+            // replace comma with dot.
+            textNode.textContent = textNode.textContent.replaceAll(/[,]/gm, '.');
+            // remove any non numeric chars (except dot)
+            textNode.textContent = textNode.textContent.replaceAll(/[^0-9.]/gm, '');
+            // Move the cursor to the end of the field rather than begining of it.
+            // TODO Some time in the future fix so this don't move to the end of the line. but rather where the cursor was located.
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.setStart(textNode, textNode.textContent.length);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          });
         }
+
         if (typeof object === 'boolean') {
-          let returnObj = oneLineTag('div', { innerText: object }, ['checkboxdiv', 'checkboxdiv' + object, 'typeBoolean']);
+          returnObj.classList.add('checkboxdiv', 'checkboxdiv' + object);
           returnObj.onclick = function () {
             checkboxToggler(this);
           };
-          return returnObj;
         }
 
         if (Array.isArray(object)) {
-          let returnObj = oneLineTag('div', {}, ['arraycontainer', 'typeArray']);
           object.forEach((o) => {
             returnObj.appendChild(modelbuilder(o));
           });
-          return returnObj;
-        }
-
-        if (typeof object === 'object') {
-          const returnObjects = oneLineTag('div', {}, ['objectscontainer', 'typeObject']);
+        } else if (typeof object === 'object') {
           for (const [key, value] of Object.entries(object)) {
-            const returnObj = oneLineTag('fieldset', {}, 'objectcontainer');
             const objname = oneLineTag('legend', {}, 'objectname');
             objname.textContent = key;
-            returnObj.appendChild(objname);
-            returnObj.appendChild(modelbuilder(value));
-            returnObjects.appendChild(returnObj);
+            const childModel = modelbuilder(value);
+            childModel.prepend(objname);
+            returnObj.appendChild(childModel);
           }
-          return returnObjects;
         }
+        return returnObj;
 
         // const destNode = oneLineTag('div',)
       }
@@ -165,50 +203,58 @@
         //if(Array.isArray(object))
       }
 
-      function objectBuilder(node) {
+      function jsonBuilder(node) {
         let json = '';
         for (let i = 0; node.childNodes.length > i; i++) {
           let n = node.childNodes[i];
+          let firstChild = n.childNodes && n.childNodes[0];
           let name;
-          if (n.classList.contains('objectname')) {
-            json += '"' + n.innerText + '": ';
-            i++;
-            n = node.childNodes[i];
+          if (firstChild && firstChild.classList && firstChild.classList.contains('objectname')) name = firstChild.innerText;
+          const legendRegExp = new RegExp(/<legend.*?>(.*?)<\/legend.*?>/gm);
+          // let name = legendRegExp.exec(n.innerHTML)[1];
+          let innerValue = n.innerHTML.replaceAll(legendRegExp, '');
+          if (name) {
+            json += '"' + name + '": ';
           }
-          if (n.classList.contains('typeString')) {
-            json += '"' + n.innerText + '",';
-          } else if (n.classList.contains('typeNumber')) {
-            json += n.innerText + ',';
-          } else if (n.classList.contains('typeBoolean')) {
-            json += n.innerText === 'true' ? 'true' : 'false';
+          if (n.classList.contains('typestring')) {
+            json += '"' + innerValue + '",';
+          } else if (n.classList.contains('typenumber')) {
+            json += innerValue + ',';
+          } else if (n.classList.contains('typeboolean')) {
+            json += innerValue === 'true' ? 'true' : 'false';
             json += ',';
-          } else if (n.classList.contains('typeObject')) {
+          } else if (n.classList.contains('typeobject')) {
             json += '{';
-            json += objectBuilder(n);
+            json += jsonBuilder(n);
             json = json.slice(0, -1);
             json += '},';
-          } else if (n.classList.contains('typeArray')) {
+          } else if (n.classList.contains('typearray')) {
             json += '[';
-            json += objectBuilder(n);
+            json += jsonBuilder(n);
             json = json.slice(0, -1);
             json += '],';
           } else if (n.classList.contains('objectcontainer')) {
-            json += objectBuilder(n);
+            json += jsonBuilder(n);
           }
         }
+        console.log(json);
         return json;
       }
 
       function model2JSON() {
         const model = document.getElementById('jsonModel');
-        const newJSON = objectBuilder(model);
+        const newJSON = jsonBuilder(model);
         console.log(newJSON.slice(0, -1));
-        document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON.slice(0, -1)), undefined, 4);
+        try {
+          document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON.slice(0, -1)), undefined, 4);
+        } catch (error) {
+          console.log(error.message);
+        }
       }
       document.addEventListener('DOMContentLoaded', (event) => {
         const jsonEditor = document.getElementById('jsonEditor');
         const jsonModel = document.getElementById('jsonModel');
-/*
+        /*
         Object.keys(window).forEach((key) => {
           if (/./.test(key)) {
             window.addEventListener(key.slice(2), (event) => {
@@ -251,15 +297,17 @@
     </script>
   </head>
   <body>
+    "Correct JSON is green 
+    Invalid JSON is red."
     <pre id="jsonEditor" class="jsonEditor" contenteditable="true">
-{
-    "settings": "snö",
-    "array": [1,2,3],
-    "more": {"first": 1, "second": 2},
-    "boolean": true
-}
+    {
+      "settings": "snö",
+      "array": [1,2,3],
+      "more": {"first": 1, "second": 2},
+      "boolean": true
+    }
     </pre>
-
+    "Objects are purple, arrays are pink. Strings are white, numbers are black. The true is green and the false is red."
     <div id="jsonModel" class="jsonModel"></div>
   </body>
 </html>
