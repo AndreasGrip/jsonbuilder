@@ -85,6 +85,10 @@
         border-right: 1px solid black;
         background-color: grey;
       }
+      .poetry {
+        padding: 4px;
+        margin: 5px;
+      }
     </style>
     <script>
       // https://stackoverflow.com/questions/39251318/javascript-function-document-createelementtagname-options-doesnt-work-as-i
@@ -314,7 +318,7 @@
     </script>
   </head>
   <body>
-    "Correct JSON is green Invalid JSON is red."
+    "Correct JSON is <span class="jsonEditor">green</span> Invalid JSON is <span class="jsonEditor jsonEditorError">red</span>."
     <pre id="jsonEditor" class="jsonEditor" contenteditable="true">
     {
       "settings": "snö",
@@ -323,8 +327,11 @@
       "boolean": true
     }
     </pre>
-    "Objects are purple, arrays are pink. Strings are white, numbers are black. The true is green and the false is red."
     <div id="jsonModel" class="jsonModel"></div>
+    <div class="poetry">Objects are <span class="objectcontainer typeObject">purple</span>, arrays are <span class="objectcontainer typearray">pink</span>.</div>
+    <div class="poetry">Strings are <span class="objectcontainer inputdiv typestring">white</span>, numbers are <span class="objectcontainer inputdiv typenumber">black</span>.</div>
+    <div class="poetry">The true is <span class="objectcontainer checkboxdivtrue">green</span> and the false is <span class="objectcontainer checkboxdivfalse">red</span>.</div>
+    <div class="poetry"><span class="inputdiv typenull">Yellow</span> is the color that holds null</div>
     <div class="footerouter">
       <div class="footer">
         <center>
