@@ -46,6 +46,9 @@
       .inputdiv.typestring {
         background-color: white;
       }
+      .inputdiv.typenull {
+        background-color: rgb(238, 236, 142);
+      }
       .checkboxdiv {
         padding: 2px;
         border: 2px solid black;
@@ -151,14 +154,17 @@
         if (typeof object === 'function') return;
 
         returnObj = oneLineTag('fieldset', {}, 'objectcontainer');
+        if (object === null) {
+          returnObj.classList.add('typenull');
+        }
         if (Array.isArray(object)) {
           returnObj.classList.add('typearray');
         } else {
           returnObj.classList.add('type' + typeof object);
         }
-        if (['string', 'number', 'boolean'].includes(typeof object)) {
+        if (['string', 'number', 'boolean'].includes(typeof object) || object === null) {
           returnObj.classList.add('inputdiv');
-          returnObj.innerText = object;
+          returnObj.innerText = object === null ? 'null' : object;
           if (['string', 'number'].includes(typeof object)) {
             returnObj.contentEditable = true;
           }
@@ -202,7 +208,7 @@
           object.forEach((o) => {
             returnObj.appendChild(modelbuilder(o));
           });
-        } else if (typeof object === 'object') {
+        } else if (typeof object === 'object' && object !== null) {
           for (const [key, value] of Object.entries(object)) {
             const objname = oneLineTag('legend', {}, 'objectname');
             objname.textContent = key;
