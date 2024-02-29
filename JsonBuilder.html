@@ -254,27 +254,25 @@
           } else if (n.classList.contains('typeobject')) {
             json += '{';
             json += jsonBuilder(n);
-            json = json.slice(0, -1);
             json += '},';
           } else if (n.classList.contains('typearray')) {
             json += '[';
             json += jsonBuilder(n);
-            json = json.slice(0, -1);
             json += '],';
           } else if (n.classList.contains('objectcontainer')) {
             json += jsonBuilder(n);
           }
         }
         console.log(json);
-        return json;
+        return json.slice(0, -1);
       }
 
       function model2JSON() {
         const model = document.getElementById('jsonModel');
         const newJSON = jsonBuilder(model);
-        console.log(newJSON.slice(0, -1));
+        console.log(newJSON);
         try {
-          document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON.slice(0, -1)), undefined, 4);
+          document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON), undefined, 4);
         } catch (error) {
           console.log(error.message);
         }
