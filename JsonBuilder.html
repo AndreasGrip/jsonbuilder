@@ -240,26 +240,32 @@
           if (firstChild && firstChild.classList && firstChild.classList.contains('objectname')) name = firstChild.innerText;
           const legendRegExp = new RegExp(/<legend.*?>(.*?)<\/legend.*?>/gm);
           // let name = legendRegExp.exec(n.innerHTML)[1];
-          let innerValue = n.innerHTML.replaceAll(legendRegExp, '');
+          let innerValue = '';
+          if (n.innerHTML) {
+            innerValue = n.innerHTML.replaceAll(legendRegExp, '');
+          } else if (n.textContent) {
+            innerValue = n.textContent;
+          }
+
           if (name) {
             json += '"' + name + '": ';
           }
-          if (n.classList.contains('typestring')) {
+          if (n?.classList?.contains('typestring')) {
             json += '"' + innerValue + '",';
-          } else if (n.classList.contains('typenumber')) {
+          } else if (n?.classList?.contains('typenumber')) {
             json += innerValue + ',';
-          } else if (n.classList.contains('typeboolean')) {
+          } else if (n?.classList?.contains('typeboolean')) {
             json += innerValue === 'true' ? 'true' : 'false';
             json += ',';
-          } else if (n.classList.contains('typeobject')) {
+          } else if (n?.classList?.contains('typeobject')) {
             json += '{';
             json += jsonBuilder(n);
             json += '},';
-          } else if (n.classList.contains('typearray')) {
+          } else if (n?.classList?.contains('typearray')) {
             json += '[';
             json += jsonBuilder(n);
             json += '],';
-          } else if (n.classList.contains('objectcontainer')) {
+          } else if (n?.classList?.contains('objectcontainer')) {
             json += jsonBuilder(n);
           }
         }
