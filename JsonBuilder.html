@@ -326,10 +326,17 @@
     "Correct JSON is <span class="jsonEditor">green</span> Invalid JSON is <span class="jsonEditor jsonEditorError">red</span>."
     <pre id="jsonEditor" class="jsonEditor" contenteditable="true">
     {
-      "settings": "snö",
+      "string": "string",
+      "emptyString": "",
       "array": [1,2,3],
-      "more": {"first": 1, "second": 2},
-      "boolean": true
+      "emptyArray": [],
+      "arryOfArrays": [[],[],[[],[]]],
+      "object": {"first": 1, "second": 2},
+      "emptyObject": {},
+      "objectOfObject": {"a": {},"b":{},"c":{},"d":{"d1":{},"d2":{}}},
+      "booleanTrue": true,
+      "booleanFalse": false,
+      "null": null
     }
     </pre>
     <div id="jsonModel" class="jsonModel"></div>
