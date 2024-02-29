@@ -278,7 +278,11 @@
         const newJSON = jsonBuilder(model);
         console.log(newJSON);
         try {
-          document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON), undefined, 4);
+          if (document.getElementById('minify').checked) {
+            document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON));
+          } else {
+            document.getElementById('jsonEditor').innerHTML = JSON.stringify(JSON.parse(newJSON), undefined, 4);
+          }
         } catch (error) {
           console.log(error.message);
         }
@@ -330,6 +334,7 @@
   </head>
   <body>
     "Correct JSON is <span class="jsonEditor">green</span> Invalid JSON is <span class="jsonEditor jsonEditorError">red</span>."
+    <div><input type="checkbox" id="minify" onchange="model2JSON()"/><lable>Minify JSON</lable></div>
     <pre id="jsonEditor" class="jsonEditor" contenteditable="true">
     {
       "string": "string",
